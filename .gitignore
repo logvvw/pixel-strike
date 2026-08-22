@@ -1,0 +1,57 @@
+# ── macOS ────────────────────────────────────────────────
+.DS_Store
+
+# ── Dependencies ─────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ── Environment & secrets (defensive — none committed) ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.pfx
+*.p8
+*.der
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── QA / tooling artifacts ───────────────────────────────
+# gstack browser QA logs, screenshots, and design reports
+.gstack/
+
+# Agent development tooling (superpowers subagent-driven dev)
+.superpowers/
+
+# ── Editor / IDE ─────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+
+# ── AI coding agent state ────────────────────────────────
+# Anthropic Claude Code session/state
+.claude/
+# Reasonix agent state
+.reasonix/
+# OpenAI Codex CLI state
+.codex/
+# Cursor editor state
+.cursor/
+# Aider chat history
+.aider*
+# Continue.dev session data
+.continue/

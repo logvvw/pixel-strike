@@ -1,0 +1,22 @@
+{
+  "name": "荒漠迷城",
+  "id": "de_dust",
+  "width": 30,
+  "height": 30,
+  "description": "经典沙漠地图，中路开阔，左右各一条绕路通道",
+  "ctSpawn": [
+    { "x": 1, "y": 1 },
+    { "x": 2, "y": 1 }
+  ],
+  "tSpawn": [
+    { "x": 28, "y": 1 },
+    { "x": 28, "y": 2 }
+  ],
+  "bombSites": [
+    { "id": "A", "cx": 3, "cy": 28, "radius": 2, "label": "A 通道" },
+    { "id": "B", "cx": 26, "cy": 28, "radius": 2, "label": "B 隧道" }
+  ],
+  "roundTime": 105,
+  "buyTime": 30,
+  "tags": ["open", "classic", "symmetric"]
+}

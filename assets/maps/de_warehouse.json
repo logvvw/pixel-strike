@@ -1,0 +1,22 @@
+{
+  "name": "仓库区",
+  "id": "de_warehouse",
+  "width": 36,
+  "height": 36,
+  "description": "多通道复杂结构地图，狭窄 doorway，适合战术配合",
+  "ctSpawn": [
+    { "x": 1, "y": 1 },
+    { "x": 33, "y": 1 }
+  ],
+  "tSpawn": [
+    { "x": 34, "y": 1 },
+    { "x": 34, "y": 2 }
+  ],
+  "bombSites": [
+    { "id": "A", "cx": 4, "cy": 34, "radius": 2, "label": "A 仓库" },
+    { "id": "B", "cx": 31, "cy": 34, "radius": 2, "label": "B 货柜" }
+  ],
+  "roundTime": 105,
+  "buyTime": 30,
+  "tags": ["complex", "tight", "multi-route"]
+}

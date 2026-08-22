@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11130F">
+  <title>PIXSTRIKE // Tactical Simulation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <section id="boot-screen" aria-labelledby="boot-title">
+    <main class="ops-shell">
+      <header class="ops-header">
+        <div class="ops-brand">
+          <p class="ops-kicker">FIELD OPERATIONS SYSTEM</p>
+          <h1 id="boot-title" class="title">PIXSTRIKE</h1>
+          <p class="subtitle">TACTICAL SIMULATION // OPERATIONS HUB</p>
+        </div>
+        <div class="ops-readout" aria-label="行动员档案">
+          <div><span>CREDITS</span><strong id="profile-credits">1,800</strong></div>
+          <div><span>TOTAL KILLS</span><strong id="profile-kills">0</strong></div>
+        </div>
+        <p id="ops-status" role="status" data-tone="neutral">SYSTEM READY // 等待部署</p>
+      </header>
+
+      <nav id="ops-tabs" class="ops-tabs" role="tablist" aria-label="行动中心">
+        <button type="button" role="tab" id="ops-tab-maps" data-tab="maps" aria-controls="ops-panel-maps" aria-selected="true">地图部署</button>
+        <button type="button" role="tab" id="ops-tab-armory" data-tab="armory" aria-controls="ops-panel-armory" aria-selected="false">枪械库</button>
+        <button type="button" role="tab" id="ops-tab-store" data-tab="store" aria-controls="ops-panel-store" aria-selected="false">枪械商城</button>
+      </nav>
+
+      <div class="ops-content">
+        <section id="ops-panel-maps" class="ops-panel maps-panel" role="tabpanel" aria-labelledby="ops-tab-maps">
+          <div class="map-catalog">
+            <div id="map-filters" class="map-filters" aria-label="地图系列">
+              <button type="button" data-filter="all" aria-pressed="true">ALL // 全部</button>
+              <button type="button" data-filter="ship" aria-pressed="false">SHIP // 运输船</button>
+              <button type="button" data-filter="plaza" aria-pressed="false">PLAZA // 广场</button>
+              <button type="button" data-filter="alley" aria-pressed="false">ALLEY // 巷子</button>
+              <button type="button" data-filter="street" aria-pressed="false">STREET // 街道</button>
+            </div>
+            <div id="map-list" class="map-list" aria-label="可用地图"></div>
+          </div>
+
+          <aside class="map-detail" aria-live="polite">
+            <div class="preview-frame">
+              <canvas id="map-preview" width="480" height="300" aria-label="选中地图战术预览"></canvas>
+              <span>LIVE GRID // AUTHORIZED</span>
+            </div>
+            <p id="map-detail-callout" class="detail-callout">DECK RAID</p>
+            <h2 id="map-detail-title">甲板突袭</h2>
+            <p id="map-detail-description">双长线与集装箱掩体。</p>
+            <p id="map-detail-meta" class="detail-meta">难度 1 // 新兵 · 24 × 24</p>
+            <ul id="map-detail-tags" class="detail-tags" aria-label="地图特性"></ul>
+            <button id="start-btn" type="button">
+              <span>DEPLOY // 开始部署</span>
+              <small>ENTER SELECTED COMBAT ZONE</small>
+            </button>
+          </aside>
+        </section>
+
+        <section id="ops-panel-armory" class="ops-panel is-hidden" role="tabpanel" aria-labelledby="ops-tab-armory">
+          <header class="panel-heading">
+            <div><p>AUTHORIZED LOADOUT</p><h2>枪械库 // ARMORY</h2></div>
+            <ol id="loadout-slots" class="loadout-slots" aria-label="当前四个装备槽位">
+              <li>01 // EMPTY</li><li>02 // EMPTY</li><li>03 // EMPTY</li><li>04 // EMPTY</li>
+            </ol>
+          </header>
+          <div id="armory-list" class="weapon-grid" aria-label="已拥有枪械"></div>
+        </section>
+
+        <section id="ops-panel-store" class="ops-panel is-hidden" role="tabpanel" aria-labelledby="ops-tab-store">
+          <header class="panel-heading">
+            <div><p>QUARTERMASTER REQUISITION</p><h2>枪械商城 // WEAPON STORE</h2></div>
+            <p class="panel-note">购买后武器将永久解锁</p>
+          </header>
+          <div id="store-list" class="weapon-grid" aria-label="可购买枪械"></div>
+        </section>
+      </div>
+    </main>
+  </section>
+
+  <main id="game-container" class="is-hidden">
+    <canvas id="game-canvas" width="320" height="200" aria-label="PixStrike 游戏画面"></canvas>
+
+    <section id="hud" aria-label="战术状态界面">
+      <header id="hud-top" class="hud-strip">
+        <div class="hud-cell hud-cell-left">
+          <span id="map-name-display" class="hud-label" aria-label="当前地图 甲板突袭 // SHIP-DECK">甲板突袭 // SHIP-DECK</span>
+          <strong id="score-display">SCORE // 00000</strong>
+        </div>
+        <div class="hud-clock-wrap">
+          <span class="hud-label">MISSION TIME</span>
+          <strong id="timer-display" class="hud-clock">01:45</strong>
+        </div>
+        <div class="hud-cell hud-cell-right">
+          <span id="wave-display">CONTACT // 01</span>
+          <strong id="money-display">CREDITS // $800</strong>
+        </div>
+      </header>
+
+      <footer id="hud-bottom">
+        <section id="health-bar" class="hud-module vitals-module">
+          <span class="module-index">01</span>
+          <div class="module-content">
+            <span class="hud-label">VITALS</span>
+            <div class="vitals-row">
+              <strong id="health-val">100</strong>
+              <div class="bar-bg"><div id="health-fill" class="bar-fill nominal"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="weapon-info" class="hud-module weapon-module">
+          <div class="module-content weapon-copy">
+            <span class="hud-label">ACTIVE LOADOUT</span>
+            <strong id="weapon-name">GLOCK-18</strong>
+          </div>
+          <div class="ammo-copy">
+            <span class="hud-label">MAG / RESERVE</span>
+            <strong id="ammo-display">20 / 120</strong>
+          </div>
+          <span class="module-index">02</span>
+        </section>
+      </footer>
+
+      <div id="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div id="hit-marker" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div id="kill-feed" aria-live="polite"></div>
+    </section>
+
+    <section id="buy-menu" class="is-hidden" role="dialog" aria-modal="true" aria-label="现场枪械库">
+      <div class="buy-panel">
+        <header class="buy-header">
+          <div><span class="panel-kicker">FIELD ARMORY</span><h2>现场枪械库</h2></div>
+          <span class="key-chip">B // CLOSE</span>
+        </header>
+        <div class="buy-meta"><span>1—4 // 快速切换</span></div>
+        <div id="buy-list"></div>
+        <p class="buy-footnote">SELECT EQUIPPED WEAPON // READY</p>
+      </div>
+    </section>
+
+    <div id="round-msg" class="is-hidden" role="status"></div>
+    <div id="damage-flash" aria-hidden="true"></div>
+    <section id="overlay" class="is-hidden" role="dialog" aria-modal="true" aria-live="assertive"></section>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
