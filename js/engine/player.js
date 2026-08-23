@@ -7,6 +7,9 @@ import { isWall } from './map.js';
 const PLAYER_RADIUS = 0.2;
 const MOVE_SPEED = 3.0;    // 地图单位/秒
 const CROUCH_SPEED = 1.7;  // 地图单位/秒（下蹲时更慢）
+// 左右平移比前进稍慢，便于瞄准；缩放在归一化之前，所以纯左右走
+// 会更慢，但前后+左右的斜向移动仍归一化到基础速度。
+const STRAFE_SPEED_RATIO = 0.75;
 const ROT_SPEED = 2.5;     // 弧度/秒（键盘旋转）
 const MOUSE_SENSITIVITY = 0.002;
 
@@ -106,8 +109,8 @@ export class Player {
 
     if (forward) { moveX += Math.cos(this.angle); moveY += Math.sin(this.angle); }
     if (backward) { moveX -= Math.cos(this.angle); moveY -= Math.sin(this.angle); }
-    if (strafeLeft) { moveX += Math.cos(this.angle - Math.PI/2); moveY += Math.sin(this.angle - Math.PI/2); }
-    if (strafeRight) { moveX += Math.cos(this.angle + Math.PI/2); moveY += Math.sin(this.angle + Math.PI/2); }
+    if (strafeLeft) { moveX += STRAFE_SPEED_RATIO * Math.cos(this.angle - Math.PI/2); moveY += STRAFE_SPEED_RATIO * Math.sin(this.angle - Math.PI/2); }
+    if (strafeRight) { moveX += STRAFE_SPEED_RATIO * Math.cos(this.angle + Math.PI/2); moveY += STRAFE_SPEED_RATIO * Math.sin(this.angle + Math.PI/2); }
 
     // 归一化
     const len = Math.sqrt(moveX * moveX + moveY * moveY);

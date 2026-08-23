@@ -12,10 +12,12 @@
  * lazily from the first user gesture to satisfy autoplay policies.
  */
 const CATEGORIES = Object.freeze({
+  // 手枪：尖锐的高频瞬态 crack + 短促的中频 thwack body + 适度房间残响。
+  // 比步枪更亮、更干，没有低频轰鸣。
   sidearm: {
-    crack: 2600, crackGain: 0.38, crackDuration: 0.015,
-    body: 170, bodyGain: 0.42, bodyDuration: 0.07,
-    tail: 0.05, tailGain: 0.16,
+    crack: 3200, crackGain: 0.44, crackDuration: 0.012,
+    body: 220, bodyGain: 0.40, bodyDuration: 0.06,
+    tail: 0.05, tailGain: 0.18,
   },
   smg: {
     crack: 3400, crackGain: 0.32, crackDuration: 0.012,
