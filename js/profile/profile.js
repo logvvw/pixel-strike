@@ -4,7 +4,7 @@ import { WEAPONS } from '../weapons/weapons.js';
 export const PROFILE_VERSION = 1;
 export const PROFILE_KEY = 'pixstrike.profile.v1';
 
-const DEFAULT_CREDITS = 1800;
+const DEFAULT_CREDITS = 10000;
 const DEFAULT_WEAPON_ID = 'pistol';
 const MAX_EQUIPPED_WEAPONS = 4;
 

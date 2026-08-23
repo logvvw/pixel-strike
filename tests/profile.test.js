@@ -34,7 +34,7 @@ test('default profile starts the approved operation with independently owned nes
 
   assert.deepEqual(first, {
     version: PROFILE_VERSION,
-    credits: 1800,
+    credits: 10000,
     ownedWeaponIds: ['pistol'],
     equippedWeaponIds: ['pistol'],
     selectedMapId: 'ship-deck',
@@ -82,7 +82,7 @@ test('normalization safely falls back for malformed or wrong-version data', () =
 test('normalization retains default credits when a current-version profile omits them', () => {
   const profile = normalizeProfile({ version: PROFILE_VERSION }, catalogs);
 
-  assert.equal(profile.credits, 1800);
+  assert.equal(profile.credits, 10000);
 });
 
 test('purchase deducts the weapon unlock price once and keeps the input profile unchanged', () => {

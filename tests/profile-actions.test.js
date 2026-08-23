@@ -61,7 +61,7 @@ test('successful profile actions assign memory before save, refresh, and status 
   assert.equal(harness.controller.onPurchase('usp'), true);
 
   const nextProfile = harness.state.profile;
-  assert.equal(nextProfile.credits, 1400);
+  assert.equal(nextProfile.credits, 9600);
   assert.deepEqual(nextProfile.ownedWeaponIds, ['pistol', 'usp']);
   assert.deepEqual(harness.calls.map(call => call.type), [
     'set-profile',
@@ -85,7 +85,7 @@ test('failed storage retains the accepted in-memory profile and reports the save
 
   assert.equal(harness.controller.onPurchase('usp'), true);
 
-  assert.equal(harness.state.profile.credits, 1400);
+  assert.equal(harness.state.profile.credits, 9600);
   assert.deepEqual(harness.state.profile.ownedWeaponIds, ['pistol', 'usp']);
   assert.deepEqual(harness.calls.map(call => call.type), [
     'set-profile',
