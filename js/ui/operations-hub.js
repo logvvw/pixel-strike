@@ -185,11 +185,13 @@ export class OperationsHub {
     onPurchase,
     onToggleEquip,
     onSelectMap,
+    sound = null,
   } = {}) {
     this.onDeploy = callbackOrNoop(onDeploy);
     this.onPurchase = callbackOrNoop(onPurchase);
     this.onToggleEquip = callbackOrNoop(onToggleEquip);
     this.onSelectMap = callbackOrNoop(onSelectMap);
+    this.sound = sound && typeof sound.select === 'function' ? sound : null;
     this.activeTab = 'maps';
     this.mapFilter = 'all';
     this.profile = null;
@@ -242,7 +244,10 @@ export class OperationsHub {
 
     this.elements.mapList?.addEventListener('click', event => {
       const card = event.target.closest('button[data-map-id]');
-      if (card && this.elements.mapList.contains(card)) this.onSelectMap(card.dataset.mapId);
+      if (card && this.elements.mapList.contains(card)) {
+        this.onSelectMap(card.dataset.mapId);
+        this.sound?.select?.();
+      }
     });
 
     this.elements.mapList?.addEventListener('keydown', event => {
@@ -252,6 +257,7 @@ export class OperationsHub {
       if (event.key === 'Enter') {
         event.preventDefault();
         this.onSelectMap(card.dataset.mapId);
+        this.sound?.select?.();
         return;
       }
       if (!event.key.startsWith('Arrow')) return;

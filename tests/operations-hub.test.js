@@ -11,6 +11,7 @@ import {
   getProfileActionStatus,
   getStoreCardModels,
   normalizeStatusTone,
+  OperationsHub,
   renderPreviewToCanvas,
 } from '../js/ui/operations-hub.js';
 
@@ -234,4 +235,33 @@ test('map focus index wraps for horizontal and vertical arrow movement', () => {
   assert.equal(getNextMapFocusIndex(3, 'ArrowDown', 5), 4);
   assert.equal(getNextMapFocusIndex(2, 'Enter', 5), 2);
   assert.equal(getNextMapFocusIndex(-1, 'ArrowRight', 0), -1);
+});
+
+// OperationsHub needs a DOM. Stub one that returns null for the root
+// element so the constructor's _installListeners() short-circuits cleanly —
+// the tests below only exercise the sound-option wiring, not DOM events.
+function withNullDocument(callback) {
+  const previous = globalThis.document;
+  globalThis.document = { getElementById: () => null };
+  try {
+    return callback();
+  } finally {
+    globalThis.document = previous;
+  }
+}
+
+test('OperationsHub accepts a sound option and exposes it on the instance', () => {
+  const sound = { select() {}, fire() {} };
+  const hub = withNullDocument(() => new OperationsHub({ sound }));
+  assert.equal(hub.sound, sound);
+});
+
+test('OperationsHub defaults sound to null when none is provided', () => {
+  const hub = withNullDocument(() => new OperationsHub());
+  assert.equal(hub.sound, null);
+});
+
+test('OperationsHub rejects a sound object that lacks a select method', () => {
+  const hub = withNullDocument(() => new OperationsHub({ sound: { fire() {} } }));
+  assert.equal(hub.sound, null);
 });

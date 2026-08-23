@@ -64,6 +64,12 @@ const profileActions = createProfileActionController({
   getActionStatus: getProfileActionStatus,
 });
 
+// SoundEngine is created at module load so UI ticks can play during the hub
+// phase (map selection). The first user click on a map card counts as the
+// user activation autoplay policies require, so arm() is safe to call here.
+sound = new SoundEngine();
+sound.arm();
+
 function createRuntimeBase() {
   const runtimeCanvas = document.getElementById('game-canvas');
   if (!runtimeCanvas) throw new Error('游戏画布不可用');
@@ -80,7 +86,6 @@ function completeRuntime({ runtimeBase, input: runtimeInput }) {
   input = runtimeInput;
   input.lockPointer(canvas);
 
-  sound = new SoundEngine();
   sound.arm();
   sound.resume();
 
@@ -182,6 +187,7 @@ runtimeController = createRuntimeSessionController({
 
 hub = new OperationsHub({
   onDeploy: deployOperation,
+  sound,
   ...profileActions,
 });
 hub.show(profile);

@@ -777,6 +777,7 @@ button {
 .map-filters button[aria-pressed="true"] {
   color: var(--ink);
   background: var(--amber);
+  animation: tab-activate 280ms ease-out;
 }
 
 .ops-tabs button:focus-visible,
@@ -864,6 +865,7 @@ button {
   border-color: var(--amber);
   border-left-color: var(--amber);
   background: rgba(227, 179, 65, 0.1);
+  animation: map-card-select 280ms ease-out;
 }
 
 .map-card-index {
@@ -1173,6 +1175,18 @@ button {
 @keyframes message-in {
   from { opacity: 0; translate: -50% -62%; }
   to { opacity: 1; translate: -50% -50%; }
+}
+
+@keyframes map-card-select {
+  0%   { transform: scale(1);    background: rgba(227, 179, 65, 0.04); }
+  40%  { transform: scale(1.02); background: rgba(227, 179, 65, 0.22); }
+  100% { transform: scale(1);    background: rgba(227, 179, 65, 0.10); }
+}
+
+@keyframes tab-activate {
+  0%   { transform: scale(1);    filter: brightness(0.85); }
+  40%  { transform: scale(1.05); filter: brightness(1.2); }
+  100% { transform: scale(1);    filter: brightness(1); }
 }
 
 @media (max-width: 700px) {

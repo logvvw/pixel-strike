@@ -160,3 +160,22 @@ test('resume re-arms the context after autoplay restrictions', () => {
   engine.resume();
   assert.equal(stub.isResumed(), true);
 });
+
+test('select schedules a UI tick with two short oscillator voices', () => {
+  const stub = createStubContext();
+  const engine = new SoundEngine({ contextFactory: () => stub.ctx });
+  engine.select();
+  const oscs = stub.nodes.filter(node => node.kind === 'osc');
+  assert.equal(oscs.length, 2, 'select should schedule exactly two tones (triangle + sine)');
+  const spans = oscs.map(node => node.stopAt - node.startAt - 0.02);
+  assert.ok(
+    spans.every(span => span <= 0.08),
+    `UI tick voices must be brief (<=80ms); got ${spans.join(', ')}`,
+  );
+});
+
+test('select is a safe no-op when no AudioContext is available', () => {
+  const engine = new SoundEngine();
+  assert.doesNotThrow(() => engine.select());
+  assert.equal(engine.context, null);
+});

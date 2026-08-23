@@ -228,6 +228,31 @@ export class SoundEngine {
     }
   }
 
+  /**
+   * Short UI tick for menu interactions (map select, button press).
+   * Two-tone chirp: a bright triangle up top and a soft sine tail to give
+   * the sound a tactile "click" character without adding noise.
+   */
+  select() {
+    const ctx = this.arm();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    playTone(ctx, {
+      frequency: 1200,
+      start: now,
+      duration: 0.06,
+      gain: 0.14,
+      type: 'triangle',
+    });
+    playTone(ctx, {
+      frequency: 600,
+      start: now + 0.02,
+      duration: 0.05,
+      gain: 0.08,
+      type: 'sine',
+    });
+  }
+
   kill(isHeadshot = false) {
     const ctx = this.arm();
     if (!ctx) return;
