@@ -1078,6 +1078,17 @@ button {
 .weapon-card.is-affordable { border-left-color: var(--amber); }
 .weapon-card.is-locked { opacity: 0.62; }
 
+.weapon-thumb {
+  display: block;
+  width: 100%;
+  height: 64px;
+  margin-top: 10px;
+  border: 1px solid var(--gunmetal);
+  background: var(--ink);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
 .weapon-card-header {
   display: flex;
   align-items: flex-start;

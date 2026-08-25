@@ -1,6 +1,7 @@
 import { getMapDefinition, MAP_CATALOG, MAP_SERIES } from '../maps/catalog.js';
 import { generateMap } from '../maps/generator.js';
 import { WEAPONS } from '../weapons/weapons.js';
+import { renderWeaponThumbnail } from './weapon-thumbnail.js';
 
 const DIFFICULTY_LABELS = Object.freeze({
   1: '新兵',
@@ -438,7 +439,15 @@ export class OperationsHub {
       action.textContent = model.equipped ? '移出装备 // REMOVE' : '加入装备 // EQUIP';
     }
 
-    card.append(header, this._create('p', 'weapon-description', model.description), stats, action);
+    // 小型像素缩略图：用 canvas 在卡片内画出武器轮廓（与游戏内 renderer 同源）。
+    // 尺寸固定 96×64 像素（CSS 放大显示），所有武器按比例居中——保留网格一致。
+    const thumb = this._create('canvas', 'weapon-thumb');
+    thumb.width = 96;
+    thumb.height = 64;
+    thumb.setAttribute('aria-label', `${model.name} 缩略图`);
+    renderWeaponThumbnail(thumb, model.id);
+
+    card.append(header, thumb, this._create('p', 'weapon-description', model.description), stats, action);
     return card;
   }
 
