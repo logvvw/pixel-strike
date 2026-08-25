@@ -11,7 +11,7 @@ const CROUCH_SPEED = 1.7;  // 地图单位/秒（下蹲时更慢）
 // 会更慢，但前后+左右的斜向移动仍归一化到基础速度。
 const STRAFE_SPEED_RATIO = 0.75;
 const ROT_SPEED = 2.5;     // 弧度/秒（键盘旋转）
-const MOUSE_SENSITIVITY = 0.002;
+const MOUSE_SENSITIVITY = 0.0012;
 
 // Crouched view: lower the eye line so the world feels closer to the ground.
 const CROUCH_PITCH = 7;

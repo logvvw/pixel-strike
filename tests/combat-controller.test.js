@@ -65,8 +65,9 @@ function createEnemy() {
     alive: true,
     visible: true,
     radius: 0.3,
+    health: 100,
     update() { return null; },
-    takeDamage() { this.alive = false; },
+    takeDamage(amount) { this.health -= amount; if (this.health <= 0) this.alive = false; },
   };
 }
 
@@ -247,4 +248,123 @@ test('Control rising edge triggers exactly one jump', () => {
   hold('ControlLeft');
   controller.runActiveUpdate({ timestamp: 1600 });
   assert.equal(controller.player.jumpCalls, 2, 'Ctrl re-press should jump again');
+});
+
+test('spawning caps at three concurrent enemies per wave', () => {
+  const { controller } = createHarness();
+  activate(controller);
+  // Wave 1: enemiesPerWave = 3, MAX_CONCURRENT_ENEMIES = 3. We bypass the
+  // maxFrameDelta clamp by calling update() directly with dt=2 (1.5s spawn
+  // interval). Each call spawns one enemy once the cap is reached.
+  for (let i = 0; i < 6; i++) {
+    controller.update(2, 1000 + (i + 1) * 2000);
+  }
+  assert.equal(controller.enemiesAlive, 3);
+  assert.equal(controller.totalEnemiesSpawned, 3);
+});
+
+test('killing an enemy frees a slot the next spawn interval refills', () => {
+  const { controller, session } = createHarness();
+  // Wave 5: enemiesPerWave = 7, MAX_CONCURRENT_ENEMIES = 3. We need more
+  // enemies per wave than the concurrent cap to observe refill after kill.
+  session.state.wave = 5;
+  activate(controller);
+
+  // Spawn the first three.
+  for (let i = 0; i < 4; i++) {
+    controller.update(2, 1000 + (i + 1) * 2000);
+  }
+  assert.equal(controller.enemiesAlive, 3);
+  assert.equal(controller.totalEnemiesSpawned, 3);
+
+  // Kill one. Spawn condition opens: 2 < 3 (alive) AND 3 < 7 (total).
+  controller.applyGroupedHits(
+    [{ entity: controller.entities[0], damage: 100, anyHeadshot: false }],
+    controller.player.currentWeapon,
+  );
+  assert.equal(controller.enemiesAlive, 2);
+
+  // One more update fills the slot.
+  controller.update(2, 9000);
+  assert.equal(controller.totalEnemiesSpawned, 4);
+  assert.equal(controller.enemiesAlive, 3);
+});
+
+test('spawning halts once enemiesPerWave is reached even when concurrent cap allows more', () => {
+  const { controller, session } = createHarness();
+  session.state.wave = 5;
+  activate(controller);
+
+  // Cycle spawn-and-kill until the wave's quota is exhausted. With dt=2
+  // and a 1.5s spawn interval, each update fires exactly one spawn when
+  // the slot is open.
+  let iterations = 0;
+  while (controller.totalEnemiesSpawned < 7 && iterations < 25) {
+    controller.update(2, 1000 + iterations * 2000);
+    for (const enemy of controller.entities) {
+      if (enemy.alive) {
+        controller.applyGroupedHits(
+          [{ entity: enemy, damage: 100, anyHeadshot: false }],
+          controller.player.currentWeapon,
+        );
+      }
+    }
+    iterations++;
+  }
+  assert.equal(controller.totalEnemiesSpawned, 7);
+
+  // 10 more updates must not spawn anything past the wave quota.
+  for (let i = 0; i < 10; i++) {
+    controller.update(2, 100000 + i * 2000);
+  }
+  assert.equal(controller.totalEnemiesSpawned, 7);
+});
+
+test('Digit and Numpad number keys switch between equipped weapons', () => {
+  const { controller, press } = createHarness();
+  activate(controller);
+  assert.equal(controller.player.currentWeapon.id, 'pistol');
+
+  press('Digit2');
+  controller.runActiveUpdate({ timestamp: 1000 });
+  assert.equal(controller.player.currentWeapon.id, 'rifle', 'Digit2 should switch to rifle');
+
+  press('Numpad1');
+  controller.runActiveUpdate({ timestamp: 1100 });
+  assert.equal(controller.player.currentWeapon.id, 'pistol', 'Numpad1 should switch back to pistol');
+});
+
+test('knife swing on click applies melee damage at close range', () => {
+  // Swap the default loadout for a single knife so this test exercises
+  // melee routing through combat-controller.
+  const { controller, press } = createHarness();
+  activate(controller);
+  controller.player.weapons = [{
+    id: 'knife', name: 'Knife', melee: true,
+    damage: 40, headshotMult: 1.5, range: 1.5,
+    fireRate: 350, magazine: Infinity, reserveAmmo: Infinity,
+    currentAmmo: Infinity, reloading: false, auto: false,
+    lastFireTime: -Infinity, lastShotAt: -Infinity,
+    baseSpread: 0, moveSpread: 0, shotSpread: 0, maxSpread: 0,
+    spreadRecovery: 0, recoilPitch: 0, recoilYaw: 0, recoilRecovery: 0, kick: 0,
+  }];
+  controller.player.currentWeaponIdx = 0;
+
+  // Position the knife-wielding player next to an enemy and spawn the enemy.
+  controller.player.x = 1.5;
+  controller.player.y = 3.5;
+  controller.player.angle = 0;
+  controller.update(0.001, 1000);  // settle position
+  controller.spawnEnemy();
+  // Teleport enemy to within knife reach (player at 1.5,3.5 +x).
+  controller.entities[0].x = 2.5;
+  controller.entities[0].y = 3.5;
+  controller.entities[0].alive = true;
+
+  const beforeHealth = controller.entities[0].health;
+  press('Space');
+  controller.update(0.001, 1100);
+
+  assert.ok(controller.entities[0].health < beforeHealth,
+    'knife click must damage the enemy at melee range');
 });

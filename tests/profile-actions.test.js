@@ -146,8 +146,8 @@ test('purchase then equip produces fresh next-deployment weapons in exact profil
   const secondLoadout = createLoadoutFromProfile(harness.state.profile, createWeapon);
 
   assert.deepEqual(harness.state.profile.equippedWeaponIds, ['pistol', 'usp']);
-  assert.deepEqual(firstLoadout.map(weapon => weapon.id), ['pistol', 'usp']);
-  assert.deepEqual(secondLoadout.map(weapon => weapon.id), ['pistol', 'usp']);
+  assert.deepEqual(firstLoadout.map(weapon => weapon.id), ['pistol', 'usp', 'knife']);
+  assert.deepEqual(secondLoadout.map(weapon => weapon.id), ['pistol', 'usp', 'knife']);
   assert.notEqual(firstLoadout[0], secondLoadout[0]);
   assert.notEqual(firstLoadout[1], secondLoadout[1]);
 });
@@ -165,5 +165,29 @@ test('loadout creation never passes unknown equipped IDs to the weapon factory',
   });
 
   assert.deepEqual(requestedIds, ['usp', 'pistol']);
-  assert.deepEqual(loadout, [{ id: 'usp' }, { id: 'pistol' }]);
+  // Knife is auto-appended by createLoadoutFromProfile via createKnife();
+  // its detail is exercised by the dedicated knife test below.
+  assert.deepEqual(
+    loadout.slice(0, 2).map(weapon => weapon.id),
+    ['usp', 'pistol'],
+  );
+  assert.equal(loadout.at(-1).id, 'knife');
+});
+
+test('loadout always ends with the knife regardless of equipped weapons', () => {
+  const profile = createDefaultProfile();
+  const loadout = createLoadoutFromProfile(profile, id => ({ id }));
+
+  assert.equal(loadout.at(-1).id, 'knife', 'knife must be the last slot');
+  assert.equal(loadout.length, 2, 'default profile equips pistol + knife');
+
+  const profileWithThree = {
+    ...profile,
+    equippedWeaponIds: ['pistol', 'usp', 'ak47'],
+  };
+  const fullLoadout = createLoadoutFromProfile(profileWithThree, id => ({ id }));
+  assert.deepEqual(
+    fullLoadout.map(weapon => weapon.id),
+    ['pistol', 'usp', 'ak47', 'knife'],
+  );
 });

@@ -1,5 +1,5 @@
 import { MAP_CATALOG } from '../maps/catalog.js';
-import { WEAPONS } from '../weapons/weapons.js';
+import { WEAPONS, createKnife } from '../weapons/weapons.js';
 import {
   purchaseWeapon,
   selectProfileMap,
@@ -82,7 +82,10 @@ export function createLoadoutFromProfile(profile, createWeaponFn) {
   const equippedIds = Array.isArray(profile?.equippedWeaponIds)
     ? profile.equippedWeaponIds
     : [];
-  return equippedIds
+  // 玩家最多选 3 把主武器（数字键 1-3），第 4 槽永远留给近战刀。
+  const userLoadout = equippedIds
     .filter(weaponId => Object.hasOwn(WEAPONS, weaponId))
+    .slice(0, 3)
     .map(weaponId => createWeaponFn(weaponId));
+  return [...userLoadout, createKnife()];
 }

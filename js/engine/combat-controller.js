@@ -3,7 +3,7 @@ import { findWeaponIndexById, groupHitsByEntity } from './session.js';
 import { RoundGate } from './round.js';
 import { createLoadoutFromProfile } from '../profile/actions.js';
 import { awardKill, awardWave } from '../profile/profile.js';
-import { createWeapon, reloadWeapon, tryFire, updateReload, updateWeaponHandling } from '../weapons/weapons.js';
+import { createWeapon, reloadWeapon, tryFire, tryMelee, updateReload, updateWeaponHandling } from '../weapons/weapons.js';
 import { UI_COPY, WEAPON_VISUALS } from '../ui/theme.js';
 
 const DEFAULT_MAX_FRAME_DELTA = 0.05;
@@ -13,6 +13,9 @@ const ENEMY_SPAWN_INTERVAL = 1.5;
 const WAVE_CLEAR_DELAY_MS = 2000;
 const TIMEOUT_DELAY_MS = 2500;
 const BASE_ENEMIES_PER_WAVE = 2;
+// 同时存活的敌人上限。低于每波总人数时，击杀后会继续补员；达到上限时
+// 即使每波配额未满，spawn 也会暂停，等击杀后再补。
+const MAX_CONCURRENT_ENEMIES = 3;
 
 function toFiniteNumber(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
@@ -211,7 +214,7 @@ export function createCombatController({
       return;
     }
 
-    if (state.enemiesAlive < state.enemiesPerWave && state.totalEnemiesSpawned < state.enemiesPerWave) {
+    if (state.enemiesAlive < MAX_CONCURRENT_ENEMIES && state.totalEnemiesSpawned < state.enemiesPerWave) {
       state.spawnTimer += dt;
       if (state.spawnTimer > ENEMY_SPAWN_INTERVAL) {
         state.spawnTimer = 0;
@@ -282,7 +285,11 @@ export function createCombatController({
   }
 
   function fireWeapon(weapon) {
-    const shot = tryFire(weapon, state.player, state.entities, state.mapData, now());
+    // 近战武器走另一条判定路径（无弹夹、短射程、即时应用 damage），
+    // 其余一律走标准 tryFire。
+    const shot = weapon?.melee
+      ? tryMelee(weapon, state.player, state.entities, state.mapData, now())
+      : tryFire(weapon, state.player, state.entities, state.mapData, now());
     if (!shot.fired) return;
     state.player.applyWeaponRecoil(shot.recoil);
     feedback.onShot(shot);
@@ -344,10 +351,10 @@ export function createCombatController({
       }
       return;
     }
-    if (input.justPressed('Digit1')) selectWeapon(0);
-    else if (input.justPressed('Digit2')) selectWeapon(1);
-    else if (input.justPressed('Digit3')) selectWeapon(2);
-    else if (input.justPressed('Digit4')) selectWeapon(3);
+    if (input.justPressed('Digit1') || input.justPressed('Numpad1')) selectWeapon(0);
+    else if (input.justPressed('Digit2') || input.justPressed('Numpad2')) selectWeapon(1);
+    else if (input.justPressed('Digit3') || input.justPressed('Numpad3')) selectWeapon(2);
+    else if (input.justPressed('Digit4') || input.justPressed('Numpad4')) selectWeapon(3);
     if (input.justPressed('KeyR')) {
       const weapon = state.player.currentWeapon;
       if (weapon) reloadWeapon(weapon, state.player, currentTime);
@@ -392,6 +399,10 @@ export function createCombatController({
   function runActiveRender() {
     render();
     hud.update(state.player, feedback);
+    // 右上角小地图：墙体、敌人点、玩家朝向。每帧重绘。
+    if (typeof hud.renderMinimap === 'function') {
+      hud.renderMinimap(state.player, state.mapData, state.entities);
+    }
   }
 
   function render() {

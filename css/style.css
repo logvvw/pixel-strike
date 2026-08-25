@@ -469,6 +469,21 @@ button {
   transition: opacity 70ms linear;
 }
 
+/* Minimap: 右上角，紧贴 HUD 顶栏下方 */
+#minimap {
+  position: absolute;
+  top: 64px;
+  right: 14px;
+  z-index: 11;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  border: 1px solid var(--olive);
+  background: var(--ink);
+  box-shadow: 0 0 0 2px rgba(17, 19, 15, 0.6);
+  image-rendering: pixelated;
+}
+
 /* Field armory */
 #buy-menu,
 #overlay {

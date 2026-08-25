@@ -35,9 +35,12 @@ test('concrete texture detail stays subtle enough to preserve target readability
 });
 
 test('every catalog weapon has a dedicated visual configuration', () => {
+  // 'knife' 不在 WEAPONS 目录里（玩家永久免费持有），但仍在 WEAPON_VISUALS
+  // 中占一个插槽，避免 renderer 在切刀时回退到 pistol 视觉。
   const ids = [
     'pistol', 'usp', 'deagle', 'uzi', 'ump45', 'nova',
     'xm1014', 'famas', 'm4a1', 'ak47', 'scout', 'awp',
+    'knife',
   ];
 
   assert.deepEqual(Object.keys(WEAPON_VISUALS), ids);

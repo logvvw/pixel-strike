@@ -329,6 +329,51 @@ export const WEAPONS = {
   },
 };
 
+// 永久免费的近战武器。damage 足够在近距离 2-3 刀解决低波次敌人，
+// 无限弹夹与无后坐使切刀时不会有手感惩罚；冷切时长 350ms 让节奏
+// 比子弹更慢，鼓励近距离连续命中而不是 spam 鼠标。
+export const KNIFE_DEF = Object.freeze({
+  id: 'knife',
+  name: 'Knife',
+  category: 'MELEE',
+  description: '近战武器 · 永久免费 / Permanent melee',
+  unlockPrice: 0,
+  price: 0,
+  damage: 40,
+  headshotMult: 1.5,
+  fireRate: 350,
+  magazine: Infinity,
+  reserveAmmo: Infinity,
+  reloadTime: 0,
+  baseSpread: 0,
+  moveSpread: 0,
+  shotSpread: 0,
+  maxSpread: 0,
+  spreadRecovery: 0,
+  recoilPitch: 0,
+  recoilYaw: 0,
+  recoilRecovery: 0,
+  kick: 0,
+  range: 1.5,
+  auto: false,
+  melee: true,
+});
+
+export function createKnife() {
+  return {
+    ...KNIFE_DEF,
+    currentAmmo: Infinity,
+    currentSpread: 0,
+    shotIndex: 0,
+    recoilX: 0,
+    recoilY: 0,
+    lastShotAt: -Infinity,
+    lastFireTime: -Infinity,
+    reloading: false,
+    reloadEnd: 0,
+  };
+}
+
 /** 创建武器实例 */
 export function createWeapon(id) {
   const def = WEAPONS[id];
@@ -431,6 +476,44 @@ export function tryFire(weapon, player, entities, map, now, options = {}) {
     rayAngle,
     spread,
     recoil,
+  };
+}
+
+/**
+ * 近战挥击判定：复用射线命中检测（短射程），但无视弹夹与散布，
+ * 命中后直接应用 weapon.damage（或爆头倍率）。冷切由 weapon.fireRate 控
+ * 制，与 tryFire 一致，这样无论是刀还是枪都共享冷却节拍。
+ */
+export function tryMelee(weapon, player, entities, map, now) {
+  if (now - weapon.lastFireTime < weapon.fireRate) {
+    return notFired('cooldown');
+  }
+  weapon.lastFireTime = now;
+  weapon.lastShotAt = now;
+
+  const hit = raycastHit(
+    player.x,
+    player.y,
+    player.angle,
+    weapon.range,
+    entities,
+    map,
+    player.cameraOffset ?? 0,
+  );
+  const hits = hit ? [hit] : [];
+  if (hit) {
+    hit.damage = hit.isHeadshot
+      ? weapon.damage * weapon.headshotMult
+      : weapon.damage;
+  }
+  return {
+    fired: true,
+    reason: null,
+    hit,
+    hits,
+    rayAngle: player.angle,
+    spread: 0,
+    recoil: { x: 0, y: 0, kick: 0 },
   };
 }
 

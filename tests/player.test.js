@@ -101,3 +101,13 @@ test('crouch uses a smaller collision radius', () => {
   assert.equal(standing.collidesWithWall(1.15, 1.5, wallAtEdge), true);
   assert.equal(crouched.collidesWithWall(1.15, 1.5, wallAtEdge), false);
 });
+
+test('mouse sensitivity is reduced so close-range aim stays controllable', () => {
+  // 100 pixels of mouse movement should rotate less than 8° so the player
+  // can track a near-spawn enemy without overshooting.
+  const { player } = createHarness();
+  const startAngle = player.angle;
+  player.applyLookDelta(100, 0);
+  const delta = Math.abs(player.angle - startAngle);
+  assert.ok(delta < 0.14, `100px mouse sweep should rotate < 8° (0.14 rad), got ${delta}rad`);
+});

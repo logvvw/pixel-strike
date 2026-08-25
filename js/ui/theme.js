@@ -201,6 +201,16 @@ export const WEAPON_VISUALS = Object.freeze({
     grip: PALETTE.GUNMETAL, accent: PALETTE.CONCRETE,
     muzzle: freezeMuzzle([0.02, 0.32]),
   }),
+  knife: Object.freeze({
+    profile: 'melee', variant: 0,
+    width: 28, height: 56, stanceX: 30,
+    hands: freezeWeaponHands([0.20, 0.40, 0.55, 0.85], [0.62, 0.84, 0.65, 0.90]),
+    body: PALETTE.CONCRETE, metal: PALETTE.SAND,
+    grip: PALETTE.RUST, accent: PALETTE.UI_AMBER,
+    // 刀刃尖端，定位到上半身（< 0.5）。刀没有枪管火焰，但保留 muzzle
+    // 锚点让 renderer 不会落入 pistol 后备。
+    muzzle: freezeMuzzle([0.5, 0.15]),
+  }),
 });
 
 export const UI_COPY = Object.freeze({

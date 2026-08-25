@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 
 import {
   WEAPONS,
+  createKnife,
   createWeapon,
   getEffectiveSpread,
   tryFire,
+  tryMelee,
   updateWeaponHandling,
 } from '../js/weapons/weapons.js';
 import { Player } from '../js/engine/player.js';
@@ -477,4 +479,76 @@ test('pushing into a wall does not count as movement for accuracy', () => {
 
   assert.equal(player.y, 1.2);
   assert.equal(player.movementIntensity, 0);
+});
+
+test('createKnife returns a permanent melee weapon with no ammo and short reach', () => {
+  const knife = createKnife();
+  assert.equal(knife.id, 'knife');
+  assert.equal(knife.melee, true);
+  assert.equal(knife.currentAmmo, Infinity);
+  assert.equal(knife.reserveAmmo, Infinity);
+  assert.ok(knife.damage > 0);
+  assert.ok(knife.range > 0 && knife.range <= 2.0);
+  assert.equal(knife.unlockPrice, 0);
+  assert.equal(knife.price, 0);
+});
+
+// Map for knife tests: row 1 is an open corridor (no walls); row 3 has a
+// wall at col 2 between the player spawn and the cells to the right so we
+// can verify wall blocking without needing openMap's long sight lines.
+const knifeArena = [
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 1, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1],
+];
+
+test('tryMelee applies damage at melee range without consuming ammo', () => {
+  const knife = createKnife();
+  const enemy = { x: 2.5, y: 1.5, alive: true, radius: 0.3 };
+  const player = { x: 1.5, y: 1.5, angle: 0, cameraOffset: 0 };
+
+  const swing = tryMelee(knife, player, [enemy], knifeArena, 1000);
+
+  assert.equal(swing.fired, true);
+  assert.equal(swing.hit.entity, enemy);
+  assert.equal(swing.hit.damage, knife.damage);
+  assert.equal(knife.currentAmmo, Infinity, 'melee must not deplete ammo');
+});
+
+test('tryMelee misses enemies beyond its short reach', () => {
+  const knife = createKnife();
+  const enemy = { x: 4.5, y: 1.5, alive: true, radius: 0.3 };
+  const player = { x: 1.5, y: 1.5, angle: 0, cameraOffset: 0 };
+
+  const swing = tryMelee(knife, player, [enemy], knifeArena, 1000);
+
+  assert.equal(swing.fired, true, 'swing still fires even when no hit');
+  assert.equal(swing.hit, null);
+});
+
+test('tryMelee is blocked by walls between the player and the target', () => {
+  const knife = createKnife();
+  // Row 3 has a wall at col 2; player at 1.5 fires +X, wall at 2.0 edge
+  // sits at dist 0.5 (in front of the enemy at dist 1.2).
+  const enemy = { x: 2.7, y: 3.5, alive: true, radius: 0.3 };
+  const player = { x: 1.5, y: 3.5, angle: 0, cameraOffset: 0 };
+
+  const swing = tryMelee(knife, player, [enemy], knifeArena, 1000);
+
+  assert.equal(swing.hit, null, 'wall between player and enemy must block melee');
+});
+
+test('tryMelee respects the swing cooldown so rapid clicks deal one hit', () => {
+  const knife = createKnife();
+  const enemy = { x: 2.5, y: 1.5, alive: true, radius: 0.3 };
+  const player = { x: 1.5, y: 1.5, angle: 0, cameraOffset: 0 };
+
+  const first = tryMelee(knife, player, [enemy], knifeArena, 1000);
+  const second = tryMelee(knife, player, [enemy], knifeArena, 1100);
+
+  assert.equal(first.fired, true);
+  assert.equal(second.fired, false);
+  assert.equal(second.reason, 'cooldown');
 });

@@ -50,6 +50,59 @@ export function getOverlayModel(title, subtitle, buttonText, secondary = null) {
   return model;
 }
 
+/**
+ * 小地图绘制：右上角的方框俯视当前地图的墙体（墙=实心）、敌人位置（红点），
+ * 以及玩家朝向（小三角，颜色与主 HUD 文案一致）。坐标系原点在左上角；
+ * 玩家/敌人的世界坐标 (x, y) 按地图 cell 数线性映射到 minimap 像素。
+ * 这是个纯函数，与 DOM 解耦，便于在 Node 测试里用代理 context 验证。
+ */
+export function drawMinimap(ctx, { width, height, player, map, entities }) {
+  const cols = map?.[0]?.length ?? 0;
+  const rows = map?.length ?? 0;
+  if (cols === 0 || rows === 0) return;
+
+  // 背景（与主 HUD 相同 --ink）
+  ctx.fillStyle = '#11130f';
+  ctx.fillRect(0, 0, width, height);
+
+  const cellW = width / cols;
+  const cellH = height / rows;
+  const projectX = x => x * cellW;
+  const projectY = y => y * cellH;
+
+  // 墙（与选区琥珀边框一致）
+  ctx.fillStyle = '#e3b341';
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (map[y][x] !== 0) ctx.fillRect(projectX(x), projectY(y), cellW, cellH);
+    }
+  }
+
+  // 敌人（红色短点，仅 alive）
+  ctx.fillStyle = '#c65343';
+  for (const enemy of entities ?? []) {
+    if (!enemy || !enemy.alive) continue;
+    const ex = projectX(enemy.x);
+    const ey = projectY(enemy.y);
+    ctx.fillRect(ex - 1, ey - 1, 2, 2);
+  }
+
+  // 玩家：朝向三角
+  if (player) {
+    ctx.save();
+    ctx.translate(projectX(player.x), projectY(player.y));
+    ctx.rotate(player.angle ?? 0);
+    ctx.fillStyle = '#ddd8c4';
+    ctx.beginPath();
+    ctx.moveTo(4, 0);
+    ctx.lineTo(-2, -2);
+    ctx.lineTo(-2, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 export class HUD {
   constructor() {
     this.elHealth = document.getElementById('health-fill');
@@ -68,8 +121,23 @@ export class HUD {
     this.elCrosshair = document.getElementById('crosshair');
     this.elHitMarker = document.getElementById('hit-marker');
     this.elKillFeed = document.getElementById('kill-feed');
+    this.elMinimap = document.getElementById('minimap') || null;
+    this.minimapCtx = this.elMinimap?.getContext('2d') ?? null;
     this.messageTimer = null;
     this.damageTimer = null;
+  }
+
+  /** 绘制右上角小地图（地图墙、敌人点、玩家朝向三角）。 */
+  renderMinimap(player, map, entities) {
+    if (!this.minimapCtx || !this.elMinimap) return;
+    const { width, height } = this.elMinimap;
+    drawMinimap(this.minimapCtx, {
+      width,
+      height,
+      player,
+      map,
+      entities,
+    });
   }
 
   update(player, feedback) {
